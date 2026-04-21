@@ -1,6 +1,6 @@
-# PromptKitchen - AI-Powered Prompt Optimizer for Everyone
+# PromptKitcha - AI-Powered Prompt Optimizer for Everyone
 
-PromptKitchen transforms rough text into powerful AI prompts with a single keystroke. Select text in any app, press `Ctrl+Shift+Space`, and watch it become a well-structured prompt ready for any LLM.
+PromptKitcha transforms rough text into powerful AI prompts with a single keystroke. Select text in any app, press `Ctrl+Shift+Space`, and watch it become a well-structured prompt ready for any LLM.
 
 Works everywhere on Windows, Mac, and Linux — Notepad, VS Code, Word, Slack, ChatGPT, Claude, and more.
 
@@ -74,7 +74,7 @@ Built with modern, fast technologies:
 ## Installation
 
 ### From Release (Windows)
-1. Download `PromptKitchen_x.x.x_x64-setup.exe` from [releases](https://github.com/DINAKAR-S/Prompt-Kitcha/releases)
+1. Download `PromptKitcha_x.x.x_x64-setup.exe` from [releases](https://github.com/DINAKAR-S/Prompt-Kitcha/releases)
 2. Run installer
 3. Launch from Start Menu or system tray
 
@@ -132,7 +132,7 @@ Found a bug 🐛 or have a feature idea ✨?
 
 ## Open Source
 
-PromptKitchen is 100% open source under the MIT License.
+PromptKitcha is 100% open source under the MIT License.
 
 - **Source Available**: Always visible source code
 - **Self-Hostable**: Deploy anywhere
