@@ -1,53 +1,161 @@
-# PromptWriter
+![PromptKitchen Banner](https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png)
 
-Grammarly-style prompt optimizer for Windows. Select rough text in any app, press `Ctrl+Shift+Space`, and the selection is replaced with a well-structured prompt you can paste into any LLM.
+# PromptKitchen - AI-Powered Prompt Optimizer for Everyone
 
-Runs as a tray app. Works everywhere on Windows — Notepad, VS Code, Word, Slack, ChatGPT web.
+PromptKitchen transforms rough text into powerful AI prompts with a single keystroke. Select text in any app, press `Ctrl+Shift+Space`, and watch it become a well-structured prompt ready for any LLM.
 
-## Why
+Works everywhere on Windows, Mac, and Linux — Notepad, VS Code, Word, Slack, ChatGPT, Claude, and more.
 
-Most people know *what* they want from AI but not *how* to prompt for it. PromptWriter classifies intent (email, code, content, question, analysis, …) and rewrites the rough text into the appropriate prompt framework in a single LLM call.
+![PromptKitchen](https://raw.githubusercontent.com/n8n-io/n8n/master/assets/n8n-screenshot-readme.png)
 
-## BYOK
+## Key Capabilities
 
-Bring your own key. Supported providers:
+- **One Keystroke Optimization**: Select text anywhere, press hotkey, get optimized prompt
+- **Smart Intent Detection**: Automatically classifies your text as email, code, content, question, or analysis
+- **Streaming Output**: Watch the prompt generate in real-time
+- **Auto-Replace**: Seamlessly replaces your selection with the optimized version
+- **Image Prompt Generation**: Create stunning AI image prompts from simple ideas
+- **Multiple Providers**: Use OpenAI, Anthropic, OpenRouter, or local Ollama
+- **Self-Hosting Ready**: Full control, your API keys never leave your machine
 
-- **OpenAI** — GPT-4o / GPT-4o-mini
-- **Anthropic** — Claude Sonnet / Haiku
-- **OpenRouter** — 100+ models through one key
-- **Ollama** — local models, zero cost, fully offline
+## Quick Start
 
-Keys are stored in the **Windows Credential Manager** via the `keyring` crate. They never touch `config.toml`.
+1. Download and install for [Windows](https://github.com/DINAKAR-S/Prompt-Kitcha/releases) or build from source
+2. Set your API key in Settings (stored securely in system credential manager)
+3. Select text in any app → Press `Ctrl+Shift+Space` → Done!
 
-## Usage
+## Features
 
-1. Select text in any app.
-2. Press `Ctrl+Shift+Space`.
-3. Popup appears, streams the optimized prompt, auto-replaces your selection.
+### Prompt Optimization
+- **Intent Classification**: Detects email, code, content, question, analysis, brainstorm, and more
+- **Mode A (Prompt)**: For LLMs like ChatGPT, Claude, Cursor
+- **Mode B (Artifact)**: For finished text you paste directly (emails, messages, notes)
+- **Refine Loop**: Give feedback, iterate until perfect
+- **Technique Selector**: Choose from RACE, CARE, COAST, PAIN, ROSES, and more
 
-Alternative trigger: copy text with `Ctrl+C` → a floating pill appears near the cursor for 3 seconds → click to optimize.
+### Image Prompt Maker
+Generate creative image prompts from simple descriptions:
+- **Creative Spark**: AI-enhanced prompts with style, mood, lighting
+- **Photo Realistic**: Professional photography prompts
+- **Cinematic**: Movie poster-style compositions
+- **Digital Art**: Illustration and concept art
+- **Anime / Manga**: Japanese animation style
+- **3D Render**: Three-dimensional renders
 
-## Build
+### BYOK (Bring Your Own Key)
 
-```bash
-npm install
-npm run tauri dev      # dev
-npm run tauri build    # produce installers (msi, nsis)
-```
+| Provider | Default Model | API Required |
+|---------|-------------|------------|
+| **OpenAI** | GPT-4o-mini | Yes |
+| **Anthropic** | Claude Haiku | Yes |
+| **OpenRouter** | 100+ models | Yes |
+| **Ollama** | llama3.1 | No (local) |
 
-Requires: Rust stable, MS C++ Build Tools, Node 20+, Webview2 (ships with Win11).
+API keys are stored in **system credential manager** — Windows Credential Manager, macOS Keychain, or Linux libsecret. Never stored in config files.
 
-## Configuration
+## Supported Platforms
 
-- UI config: `%APPDATA%\PromptWriter\config.toml`
-- API keys: Windows Credential Manager (service `com.promptwriter`)
+- **Windows** 10/11 (x64) — MSI and NSIS installers
+- **macOS** Intel & Apple Silicon — DMG installer
+- **Linux** Ubuntu/Debian — AppImage
 
 ## Architecture
 
-Tauri v2. Rust backend for global hotkey, `SendInput` keystroke synthesis, clipboard save/restore, keyring, and provider streaming. React + TypeScript + Tailwind frontend with three windows: popup (frameless, transparent, always-on-top), settings, and pill.
+Built with modern, fast technologies:
 
-See [CLAUDE.md](CLAUDE.md) for the caveman-mode project notes.
+- **Tauri v2**: Rust backend for native performance
+- **React 18**: Reactive UI with TypeScript
+- **Tailwind CSS**: Beautiful, modern styling
+- **Zustand**: Lightweight state management
+- **Streaming**: Real-time prompt generation via SSE
+
+### Windows-Specific Features
+- `SendInput` keystroke synthesis for cross-app text manipulation
+- Global hotkey registration via `tauri-plugin-global-shortcut`
+- System tray integration
+- Windows Credential Manager for secure key storage
+
+## Installation
+
+### From Release (Windows)
+1. Download `PromptKitchen_x.x.x_x64-setup.exe` from [releases](https://github.com/DINAKAR-S/Prompt-Kitcha/releases)
+2. Run installer
+3. Launch from Start Menu or system tray
+
+### From Source
+```bash
+git clone https://github.com/DINAKAR-S/Prompt-Kitcha.git
+cd Prompt-Kitcha
+npm install
+npm run tauri build
+```
+
+### Requirements
+- Windows 10/11 with WebView2 (ships with Win11)
+- API key from OpenAI/Anthropic/OpenRouter (or Ollama for local)
+
+## Usage
+
+### Basic Flow
+1. **Select** text in any app (Notepad, VS Code, Chrome, Slack...)
+2. **Press** `Ctrl+Shift+Space`
+3. **Watch** popup stream the optimized prompt
+4. **Accept** → selection auto-replaced with optimized version
+
+### Alternative: Pill Trigger
+- Copy text with `Ctrl+C`
+- Floating pill appears near cursor
+- Click pill to optimize
+
+### Refine Loop
+1. After optimization, type feedback in the refine box
+2. Press Enter to regenerate
+3. Iterate until satisfied
+
+### Settings
+- **Provider**: Choose OpenAI, Anthropic, OpenRouter, or Ollama
+- **Model**: Select specific model per provider
+- **Hotkey**: Customize keyboard shortcut
+- **Auto-replace**: Toggle automatic text replacement
+
+## Resources
+
+- 📚 [Documentation](https://github.com/DINAKAR-S/Prompt-Kitcha/wiki)
+- 🔧 [Releases](https://github.com/DINAKAR-S/Prompt-Kitcha/releases)
+- 💡 [Example Prompts](https://github.com/DINAKAR-S/Prompt-Kitcha/tree/main/examples)
+- 🤖 [GitHub Actions](https://github.com/DINAKAR-S/Prompt-Kitcha/actions) for CI/CD
+
+## Contributing
+
+Found a bug 🐛 or have a feature idea ✨?
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Open Source
+
+PromptKitchen is 100% open source under the MIT License.
+
+- **Source Available**: Always visible source code
+- **Self-Hostable**: Deploy anywhere
+- **Extensible**: Add your own providers and techniques
+
+Built with ❤️ by the community, for the community.
 
 ## License
 
-MIT
+MIT License - See [LICENSE](LICENSE) for details.
+
+## Author
+
+**Dinakar S** - [@DINAKAR-S](https://github.com/DINAKAR-S)
+
+---
+
+**Made with ❤️ using Tauri, React, and Rust**
+
+[![Tauri](https://img.shields.io/badge/Tauri-2.0-FFC131?style=flat&logo=tauri)](https://tauri.app)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react)](https://react.dev)
+[![Rust](https://img.shields.io/badge/Rust-stable-CE422A?style=flat&logo=rust)](https://rust-lang.org)
