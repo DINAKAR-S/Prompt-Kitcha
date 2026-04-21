@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(cargo --version)",
+      "Bash(rustc --version)",
+      "Bash(where winget *)",
+      "Bash(where rustup-init *)"
+    ]
+  }
+}

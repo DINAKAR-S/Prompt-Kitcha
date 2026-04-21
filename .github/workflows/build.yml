@@ -1,0 +1,138 @@
+name: Build PromptKitcha
+
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+
+jobs:
+  build-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-apple-darwin
+          - target: aarch64-apple-darwin
+
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: 'PromptKitcha v__VERSION__'
+          releaseBody: |
+            ## PromptKitcha v__VERSION__
+
+            AI-powered prompt optimizer.
+
+            **Important:** You'll need your own API key from OpenAI, Anthropic, OpenRouter, or run Ollama locally.
+          releaseDraft: true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: promptkitcha-macos-${{ matrix.target }}
+          path: src-tauri/target/release/bundle/**/*.dmg
+
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: 'PromptKitcha v__VERSION__'
+          releaseBody: |
+            ## PromptKitcha v__VERSION__
+
+            AI-powered prompt optimizer.
+
+            **Important:** You'll need your own API key from OpenAI, Anthropic, OpenRouter, or run Ollama locally.
+          releaseDraft: true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: promptkitcha-windows
+          path: |
+            src-tauri/target/release/bundle/**/*.exe
+            src-tauri/target/release/bundle/**/*.msi
+
+  build-linux:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: 'PromptKitcha v__VERSION__'
+          releaseBody: |
+            ## PromptKitcha v__VERSION__
+
+            AI-powered prompt optimizer.
+
+            **Important:** You'll need your own API key from OpenAI, Anthropic, OpenRouter, or run Ollama locally.
+          releaseDraft: true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: promptkitcha-linux
+          path: src-tauri/target/release/bundle/**/*.AppImage

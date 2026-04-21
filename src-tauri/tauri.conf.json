@@ -1,0 +1,95 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "PromptKitcha",
+  "version": "0.1.0",
+  "identifier": "com.promptkitcha.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "popup",
+        "url": "popup.html",
+        "title": "PromptKitchen",
+        "width": 560,
+        "height": 360,
+        "minWidth": 420,
+        "minHeight": 260,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": true,
+        "visible": false,
+        "center": false,
+        "shadow": true
+      },
+    {
+      "label": "settings",
+      "url": "settings.html",
+"title": "PromptKitchen Settings",
+        "width": 860,
+      "height": 620,
+      "minWidth": 720,
+      "minHeight": 520,
+      "resizable": true,
+      "visible": false,
+      "center": true,
+      "shadow": true
+    },
+      {
+        "label": "pill",
+        "url": "pill.html",
+        "title": "PromptKitchen",
+        "width": 180,
+        "height": 52,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "resizable": false,
+        "visible": false,
+        "shadow": true,
+        "focus": false
+      },
+      {
+        "label": "image-prompt",
+        "url": "image-prompt.html",
+        "title": "Image Prompt Maker",
+        "width": 640,
+        "height": 520,
+        "minWidth": 480,
+        "minHeight": 400,
+        "resizable": true,
+        "visible": false,
+        "center": true,
+        "shadow": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico",
+      "icons/icon.png"
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      }
+    }
+  },
+  "plugins": {}
+}
