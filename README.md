@@ -1,12 +1,8 @@
-![PromptKitchen Banner](https://user-images.githubusercontent.com/10284570/173569848-c624317f-42b1-45a6-ab09-f0ea3c247648.png)
-
 # PromptKitchen - AI-Powered Prompt Optimizer for Everyone
 
 PromptKitchen transforms rough text into powerful AI prompts with a single keystroke. Select text in any app, press `Ctrl+Shift+Space`, and watch it become a well-structured prompt ready for any LLM.
 
 Works everywhere on Windows, Mac, and Linux — Notepad, VS Code, Word, Slack, ChatGPT, Claude, and more.
-
-![PromptKitchen](https://raw.githubusercontent.com/n8n-io/n8n/master/assets/n8n-screenshot-readme.png)
 
 ## Key Capabilities
 
