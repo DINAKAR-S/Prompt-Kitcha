@@ -109,59 +109,30 @@ pub async fn replace_selection(
     state: State<'_, SharedState>,
     text: String,
 ) -> Result<(), String> {
-    let target_hwnd = state
-        .active_app
-        .read()
-        .as_ref()
-        .map(|h| h.hwnd)
-        .unwrap_or(0);
-
-    let is_vscode = state
-        .active_app
-        .read()
-        .as_ref()
-        .map(|h| {
-            let p = h.process.to_lowercase();
-            p.contains("code") || p.contains("cursor") || p.contains("windsurf")
-        })
-        .unwrap_or(false);
-
-    if target_hwnd != 0 {
-        crate::foreground::focus_hwnd(target_hwnd);
-        // VSCode and similar IDEs need more time to properly receive focus
-        if is_vscode {
-            sleep_ms(300);
-        } else {
-            sleep_ms(140);
-        }
-    }
-
+    // Save current clipboard
     let cb = app.clipboard();
     let prior = cb.read_text().ok();
-
+    
+    // Write our text to clipboard
     *state.last_self_write.write() = Some(text.clone());
     cb.write_text(text).map_err(|e| e.to_string())?;
     
-    // Ensure clipboard is written before pasting
-    if is_vscode {
-        sleep_ms(150);
-    } else {
-        sleep_ms(80);
-    }
-
+    // Small delay to ensure clipboard is ready
+    sleep_ms(50);
+    
+    // Simulate Ctrl+V to paste
     sys::send_paste();
     
-    // Wait longer for paste to complete in VSCode
-    if is_vscode {
-        sleep_ms(400);
-    } else {
-        sleep_ms(260);
-    }
-
-    let restore = state.saved_clipboard.read().clone().or(prior);
-    if let Some(orig) = restore {
+    // Wait for paste to complete
+    sleep_ms(200);
+    
+    // Optionally restore original clipboard
+    // (disabled - let user restore manually if needed)
+    /*
+    if let Some(orig) = prior {
         *state.last_self_write.write() = Some(orig.clone());
         let _ = cb.write_text(orig);
     }
+    */
     Ok(())
 }

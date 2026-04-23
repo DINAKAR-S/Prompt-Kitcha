@@ -202,9 +202,15 @@ export default function Popup() {
     try {
       const cfg = await ipc.getConfig();
       if (cfg.auto_replace) {
+        // Write to clipboard first
+        await ipc.writeClipboard(output);
+        // Small delay
+        await new Promise((r) => setTimeout(r, 100));
+        // Simulate paste in target app - but don't hide popup yet
+        await ipc.replaceSelection("");
+        // Wait for paste to complete, then close popup
+        await new Promise((r) => setTimeout(r, 300));
         await ipc.hideWindow("popup");
-        await new Promise((r) => setTimeout(r, 120));
-        await ipc.replaceSelection(output);
       } else {
         await ipc.writeClipboard(output);
         await ipc.hideWindow("popup");
