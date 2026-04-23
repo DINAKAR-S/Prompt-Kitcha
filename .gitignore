@@ -16,8 +16,12 @@ Thumbs.db
 
 *.log
 *.local
+*.tsbuildinfo
 .vscode/*
 !.vscode/extensions.json
 .idea
+.claude/
+vite.config.js
+vite.config.d.ts
 
 *.pem

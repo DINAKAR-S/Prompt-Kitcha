@@ -116,13 +116,6 @@ npm run tauri build
 - **Hotkey**: Customize keyboard shortcut
 - **Auto-replace**: Toggle automatic text replacement
 
-## Resources
-
-- 📚 [Documentation](https://github.com/DINAKAR-S/Prompt-Kitcha/wiki)
-- 🔧 [Releases](https://github.com/DINAKAR-S/Prompt-Kitcha/releases)
-- 💡 [Example Prompts](https://github.com/DINAKAR-S/Prompt-Kitcha/tree/main/examples)
-- 🤖 [GitHub Actions](https://github.com/DINAKAR-S/Prompt-Kitcha/actions) for CI/CD
-
 ## Contributing
 
 Found a bug 🐛 or have a feature idea ✨?
