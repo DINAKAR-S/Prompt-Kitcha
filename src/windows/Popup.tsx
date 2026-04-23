@@ -109,6 +109,7 @@ export default function Popup() {
   const [suggestedMethods, setSuggestedMethods] = useState<string[]>([]);
   const [comments, setComments] = useState<string>("");
   const [showComments, setShowComments] = useState(false);
+  const [clipboardFallback, setClipboardFallback] = useState<string | null>(null);
   const [optimizeButtonAnimating, setOptimizeButtonAnimating] = useState(false);
   const [suggestedTechnique, setSuggestedTechnique] = useState<{ technique: PromptTechnique; reason: string } | null>(null);
   const lastOutputRef = useRef<string>("");
@@ -398,6 +399,19 @@ export default function Popup() {
                 </button>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Clipboard fallback notice (if any) */}
+        {clipboardFallback && (
+          <div className="px-3 py-2 border-t border-black/5 dark:border-white/10 bg-yellow-50 dark:bg-yellow-900/20">
+            <span className="text-xs text-yellow-800 dark:text-yellow-300">{clipboardFallback}</span>
+            <button
+              onClick={() => setClipboardFallback(null)}
+              className="ml-2 text-xs font-medium text-blue-600 dark:text-blue-300 hover:underline"
+            >
+              Dismiss
+            </button>
           </div>
         )}
 

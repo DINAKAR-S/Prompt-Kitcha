@@ -68,6 +68,7 @@ export const ipc = {
 
   captureSelection: () => invoke<string>("capture_selection"),
   replaceSelection: (text: string) => invoke<void>("replace_selection", { text }),
+  crossPlatformReplace: (text: string) => invoke<void>("cross_platform_replace", { text }),
   readClipboard: () => invoke<string>("read_clipboard"),
   writeClipboard: (text: string) => invoke<void>("write_clipboard", { text }),
 
