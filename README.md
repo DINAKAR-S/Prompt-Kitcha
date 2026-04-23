@@ -4,6 +4,8 @@ PromptKitcha transforms rough text into powerful AI prompts with a single keystr
 
 Works everywhere on Windows, Mac, and Linux — Notepad, VS Code, Word, Slack, ChatGPT, Claude, and more.
 
+![PromptKitcha Demo](./intro%20video%20prompt%20kitcha.gif)
+
 ## Key Capabilities
 
 - **One Keystroke Optimization**: Select text anywhere, press hotkey, get optimized prompt
