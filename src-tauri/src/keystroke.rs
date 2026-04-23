@@ -109,30 +109,36 @@ pub async fn replace_selection(
     state: State<'_, SharedState>,
     text: String,
 ) -> Result<(), String> {
+    // Get target window handle
+    let target_hwnd = state
+        .active_app
+        .read()
+        .as_ref()
+        .map(|h| h.hwnd)
+        .unwrap_or(0);
+
+    // Focus the target app first (if we have a valid handle)
+    if target_hwnd != 0 {
+        let _ = crate::foreground::focus_hwnd(target_hwnd);
+        sleep_ms(100);
+    }
+
     // Save current clipboard
     let cb = app.clipboard();
-    let prior = cb.read_text().ok();
+    let _prior = cb.read_text().ok();
     
     // Write our text to clipboard
     *state.last_self_write.write() = Some(text.clone());
     cb.write_text(text).map_err(|e| e.to_string())?;
     
     // Small delay to ensure clipboard is ready
-    sleep_ms(50);
+    sleep_ms(80);
     
     // Simulate Ctrl+V to paste
     sys::send_paste();
     
     // Wait for paste to complete
-    sleep_ms(200);
+    sleep_ms(150);
     
-    // Optionally restore original clipboard
-    // (disabled - let user restore manually if needed)
-    /*
-    if let Some(orig) = prior {
-        *state.last_self_write.write() = Some(orig.clone());
-        let _ = cb.write_text(orig);
-    }
-    */
     Ok(())
 }

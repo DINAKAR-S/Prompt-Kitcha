@@ -202,14 +202,14 @@ export default function Popup() {
     try {
       const cfg = await ipc.getConfig();
       if (cfg.auto_replace) {
-        // Write to clipboard first
+        // Write to clipboard
         await ipc.writeClipboard(output);
-        // Small delay
-        await new Promise((r) => setTimeout(r, 100));
-        // Simulate paste in target app - but don't hide popup yet
-        await ipc.replaceSelection("");
-        // Wait for paste to complete, then close popup
-        await new Promise((r) => setTimeout(r, 300));
+        // Wait a moment then trigger paste via Rust (handles focus properly)
+        await new Promise((r) => setTimeout(r, 50));
+        await ipc.replaceSelection(output);
+        // Wait for paste to complete
+        await new Promise((r) => setTimeout(r, 200));
+        // Now close popup
         await ipc.hideWindow("popup");
       } else {
         await ipc.writeClipboard(output);
