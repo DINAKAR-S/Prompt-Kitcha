@@ -128,6 +128,28 @@ pub fn capture() -> AppHint {
     AppHint::default()
 }
 
+pub fn is_our_process(hint: &AppHint) -> bool {
+    is_our_process_impl(hint)
+}
+
+#[cfg(windows)]
+fn is_our_process_impl(hint: &AppHint) -> bool {
+    let our = std::env::current_exe()
+        .ok()
+        .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_lowercase()))
+        .unwrap_or_default();
+    if our.is_empty() {
+        return false;
+    }
+    let p = hint.process.to_lowercase();
+    p == our
+}
+
+#[cfg(not(windows))]
+fn is_our_process_impl(_hint: &AppHint) -> bool {
+    false
+}
+
 fn classify_surface(process: &str, title: &str) -> &'static str {
     let p = process.to_lowercase();
     let t = title.to_lowercase();

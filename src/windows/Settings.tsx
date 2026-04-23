@@ -94,7 +94,7 @@ export default function Settings() {
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-white">PromptKitchen</h1>
+                <h1 className="text-lg font-semibold text-white">PromptKitcha</h1>
                 <p className="text-xs text-zinc-400">AI-powered prompt optimization</p>
               </div>
             </div>
@@ -140,7 +140,7 @@ export default function Settings() {
           <div className="col-span-9 space-y-6">
             {activeTab === "general" && (
               <>
-                <Card title="Behavior" description="Configure how PromptKitchen works">
+                <Card title="Behavior" description="Configure how PromptKitcha works">
                   <div className="space-y-4">
                     <Toggle 
                       label="Auto-replace selection after optimize"
@@ -308,7 +308,7 @@ export default function Settings() {
                       Apply
                     </button>
                   </div>
-                  <p className="text-xs text-zinc-500">Press this key combination anywhere to open PromptKitchen</p>
+                  <p className="text-xs text-zinc-500">Press this key combination anywhere to open PromptKitcha</p>
                 </div>
               </Card>
             )}

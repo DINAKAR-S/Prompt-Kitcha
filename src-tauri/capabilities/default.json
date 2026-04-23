@@ -1,8 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Default PromptWriter capabilities",
-  "windows": ["popup", "settings", "pill"],
+  "description": "Default PromptKitcha capabilities",
+  "windows": ["popup", "settings", "pill", "image-prompt"],
   "permissions": [
     "core:default",
     "core:window:allow-show",

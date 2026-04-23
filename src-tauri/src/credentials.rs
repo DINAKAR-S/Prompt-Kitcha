@@ -1,6 +1,6 @@
 use keyring::Entry;
 
-const SERVICE: &str = "com.promptwriter";
+const SERVICE: &str = "com.promptkitcha";
 
 fn entry(provider: &str) -> Result<Entry, String> {
     Entry::new(SERVICE, &format!("{provider}_api_key")).map_err(|e| e.to_string())

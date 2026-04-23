@@ -13,7 +13,7 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
     let menu = Menu::with_items(app, &[&optimize_now, &show_pill, &hide_pill, &open_settings, &quit])?;
 
     let _tray = TrayIconBuilder::with_id("pw-tray")
-        .tooltip("PromptKitchen")
+        .tooltip("PromptKitcha")
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id().as_ref() {
@@ -29,7 +29,7 @@ pub fn install(app: &AppHandle) -> tauri::Result<()> {
           "settings",
           tauri::WebviewUrl::App("settings.html".into())
         )
-        .title("PromptKitchen Settings")
+        .title("PromptKitcha Settings")
         .inner_size(860.0, 620.0)
         .min_inner_size(720.0, 520.0)
         .center()

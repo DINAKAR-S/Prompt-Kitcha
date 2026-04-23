@@ -9,7 +9,7 @@ use tokio::sync::Mutex;
 use crate::providers::{build, ChatRequest};
 use crate::SharedState;
 
-const META_PROMPT: &str = r#"You are PromptKitchen - a prompt optimization engine. You do NOT chat. You do NOT respond conversationally. You ONLY output a JSON object containing the optimized prompt.
+const META_PROMPT: &str = r#"You are PromptKitcha - a prompt optimization engine. You do NOT chat. You do NOT respond conversationally. You ONLY output a JSON object containing the optimized prompt.
 
 CRITICAL RULES:
 1. NEVER respond with conversational text like "Not much! Just here to help."
@@ -492,5 +492,94 @@ impl StreamingJsonExtractor {
         }
         (None, raw.to_string())
     }
+}
+
+const IMAGE_JSON_SYSTEM: &str = r#"You are PromptKitcha — an expert at writing text-to-image prompts (DALL-E, Midjourney, SD/FLUX, Imagen, etc).
+Output ONLY a JSON object. No markdown fences, no commentary before or after.
+Schema: {"prompt":"<one detailed image prompt, English unless the user idea is in another language — then match that language>","tips":["2-4 short tips as strings"]}
+Rules: The "prompt" must be a single ready-to-paste block (you may use commas or short lines). Apply the given TECHNIQUE to structure style, subject, lighting, camera, and composition. Preserve concrete subjects from the user; add clarifying detail without inventing unrelated facts."#;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ImagePromptGenRequest {
+    pub technique_id: String,
+    pub technique_name: String,
+    pub technique_blurb: String,
+    pub user_input: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ImagePromptGenResponse {
+    pub prompt: String,
+    pub tips: Vec<String>,
+}
+
+fn parse_image_json_output(raw: &str) -> Result<ImagePromptGenResponse, String> {
+    if let Some(start) = raw.find('{') {
+        if let Some(end) = raw.rfind('}') {
+            if end > start {
+                let candidate = &raw[start..=end];
+                if let Ok(val) = serde_json::from_str::<serde_json::Value>(candidate) {
+                    let Some(p) = val.get("prompt").and_then(|v| v.as_str()) else {
+                        return Err("missing prompt field in model JSON".to_string());
+                    };
+                    let prompt = p.to_string();
+                    let tips: Vec<String> = val
+                        .get("tips")
+                        .and_then(|t| t.as_array())
+                        .map(|arr| {
+                            arr.iter()
+                                .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                                .collect()
+                        })
+                        .unwrap_or_default();
+                    return Ok(ImagePromptGenResponse { prompt, tips });
+                }
+            }
+        }
+    }
+    Err("no valid JSON in model output".to_string())
+}
+
+#[tauri::command]
+pub async fn generate_image_prompt(
+    state: State<'_, SharedState>,
+    req: ImagePromptGenRequest,
+) -> Result<ImagePromptGenResponse, String> {
+    let cfg = state.config.read().clone();
+    let provider_id = cfg.provider;
+    let model = cfg.model;
+    let base_url = cfg.base_url;
+    let max_chars = cfg.max_input_chars;
+    let body: String = if req.user_input.chars().count() > max_chars {
+        let t: String = req.user_input.chars().take(max_chars).collect();
+        format!("{t}\n\n[truncated at {max_chars} chars]")
+    } else {
+        req.user_input.clone()
+    };
+    let user = format!(
+        "TECHNIQUE_ID: {}\nTECHNIQUE: {}\nWHAT THIS MEANS: {}\n\nUSER IDEA:\n{}",
+        req.technique_id, req.technique_name, req.technique_blurb, body
+    );
+    let provider = build(&provider_id, base_url.as_deref()).map_err(|e| e.to_string())?;
+    let chat = ChatRequest {
+        model,
+        system: IMAGE_JSON_SYSTEM.to_string(),
+        user,
+        temperature: 0.45,
+        max_tokens: 2000,
+    };
+    let mut stream = provider
+        .stream_chat(chat)
+        .await
+        .map_err(|e| e.to_string())?;
+    let mut raw = String::new();
+    while let Some(chunk) = stream.next().await {
+        match chunk {
+            Ok(t) => raw.push_str(&t),
+            Err(e) => return Err(e.to_string()),
+        }
+    }
+    parse_image_json_output(&raw)
 }
 

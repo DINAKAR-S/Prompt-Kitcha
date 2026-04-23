@@ -48,6 +48,18 @@ export interface OptimizeEvent {
   error?: string | null;
 }
 
+export interface ImagePromptGenRequest {
+  techniqueId: string;
+  techniqueName: string;
+  techniqueBlurb: string;
+  userInput: string;
+}
+
+export interface ImagePromptGenResponse {
+  prompt: string;
+  tips: string[];
+}
+
 export const ipc = {
   getConfig: () => invoke<AppConfig>("get_config"),
   updateConfig: (patch: Partial<AppConfig>) =>
@@ -68,12 +80,14 @@ export const ipc = {
 
   captureSelection: () => invoke<string>("capture_selection"),
   replaceSelection: (text: string) => invoke<void>("replace_selection", { text }),
-  crossPlatformReplace: (text: string) => invoke<void>("cross_platform_replace", { text }),
   readClipboard: () => invoke<string>("read_clipboard"),
   writeClipboard: (text: string) => invoke<void>("write_clipboard", { text }),
 
   optimize: (req: OptimizeRequest) => invoke<number>("optimize_text", { req }),
-  cancel: (job_id: number) => invoke<void>("cancel_optimize", { jobId: job_id }),
+  cancel: (job_id: number) => invoke<void>("cancel_optimize", { job_id }),
+
+  generateImagePrompt: (req: ImagePromptGenRequest) =>
+    invoke<ImagePromptGenResponse>("generate_image_prompt", { req }),
 
   registerHotkey: (combo: string) =>
     invoke<void>("register_hotkey", { combo }),

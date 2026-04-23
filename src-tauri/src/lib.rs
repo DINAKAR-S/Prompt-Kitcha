@@ -31,7 +31,7 @@ pub fn run() {
   tracing_subscriber::fmt()
     .with_env_filter(
       tracing_subscriber::EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| "info,promptwriter=debug".into()),
+        .unwrap_or_else(|_| "info,promptwriter_lib=debug".into()),
     )
     .init();
 
@@ -53,6 +53,7 @@ pub fn run() {
     .invoke_handler(tauri::generate_handler![
       optimizer::optimize_text,
       optimizer::cancel_optimize,
+      optimizer::generate_image_prompt,
       keystroke::capture_selection,
       keystroke::replace_selection,
       clipboard::save_clipboard,
@@ -115,7 +116,7 @@ pub fn run() {
       }
     })
     .run(tauri::generate_context!())
-    .expect("error while running PromptKitchen");
+    .expect("error while running PromptKitcha");
 }
 
 #[tauri::command]
@@ -149,7 +150,7 @@ fn show_settings(app: tauri::AppHandle) -> Result<(), String> {
       "settings",
       tauri::WebviewUrl::App("settings.html".into())
     )
-    .title("PromptKitchen Settings")
+    .title("PromptKitcha Settings")
     .inner_size(860.0, 620.0)
     .min_inner_size(720.0, 520.0)
     .center()
@@ -166,8 +167,7 @@ fn show_settings(app: tauri::AppHandle) -> Result<(), String> {
 fn show_popup_at_cursor(app: tauri::AppHandle) -> Result<(), String> {
   let state = app.state::<SharedState>();
   let fresh = foreground::capture();
-  let process_lc = fresh.process.to_lowercase();
-  if !process_lc.contains("promptwriter") {
+  if !foreground::is_our_process(&fresh) {
     *state.active_app.write() = Some(fresh);
   }
 
@@ -196,7 +196,7 @@ fn show_image_prompt(app: tauri::AppHandle) -> Result<(), String> {
       "image-prompt",
       tauri::WebviewUrl::App("image-prompt.html".into())
     )
-    .title("Image Prompt Maker")
+    .title("PromptKitcha · Image prompt")
     .inner_size(640.0, 520.0)
     .min_inner_size(480.0, 400.0)
     .center()

@@ -62,7 +62,7 @@ impl Default for AppConfig {
 impl AppConfig {
     pub fn config_path() -> PathBuf {
         let base = dirs::config_dir().unwrap_or_else(|| PathBuf::from("."));
-        base.join("PromptKitchen").join("config.toml")
+        base.join("PromptKitcha").join("config.toml")
     }
 
     pub fn load() -> anyhow::Result<Self> {

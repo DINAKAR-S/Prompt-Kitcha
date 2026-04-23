@@ -12,10 +12,7 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import { ipc } from "../lib/ipc";
-import {
-  imagePromptTechniques,
-  generateImagePrompt,
-} from "../lib/imagePromptTechniques";
+import { imagePromptTechniques } from "../lib/imagePromptTechniques";
 
 export default function ImagePrompt() {
   const [selectedTechnique, setSelectedTechnique] = useState<string>("creative");
@@ -26,6 +23,7 @@ export default function ImagePrompt() {
   const [showTechniqueDropdown, setShowTechniqueDropdown] = useState(false);
   const [showTips, setShowTips] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   const techniqueDropdownRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -53,29 +51,47 @@ export default function ImagePrompt() {
     }
   }, []);
 
-  const handleGenerate = () => {
-    if (!userInput.trim()) return;
-
+  const handleGenerate = async () => {
+    if (!userInput.trim() || !currentTechnique) return;
+    setErr(null);
     setIsGenerating(true);
-
-    // Simulate a brief generation animation
-    setTimeout(() => {
-      const result = generateImagePrompt(selectedTechnique, userInput);
-      setGeneratedPrompt(result.prompt);
-      setTips(result.tips);
+    try {
+      const r = await ipc.generateImagePrompt({
+        techniqueId: selectedTechnique,
+        techniqueName: currentTechnique.name,
+        techniqueBlurb: currentTechnique.description,
+        userInput: userInput.trim(),
+      });
+      setGeneratedPrompt(r.prompt);
+      setTips(r.tips);
+    } catch (e) {
+      setErr(String(e));
+    } finally {
       setIsGenerating(false);
-    }, 300);
+    }
   };
 
-  const handleTechniqueSelect = (techniqueId: string) => {
+  const handleTechniqueSelect = async (techniqueId: string) => {
     setSelectedTechnique(techniqueId);
     setShowTechniqueDropdown(false);
-
-    // Regenerate if there's already input
-    if (userInput.trim()) {
-      const result = generateImagePrompt(techniqueId, userInput);
-      setGeneratedPrompt(result.prompt);
-      setTips(result.tips);
+    const t = imagePromptTechniques.find((x) => x.id === techniqueId);
+    if (userInput.trim() && t) {
+      setErr(null);
+      setIsGenerating(true);
+      try {
+        const r = await ipc.generateImagePrompt({
+          techniqueId: t.id,
+          techniqueName: t.name,
+          techniqueBlurb: t.description,
+          userInput: userInput.trim(),
+        });
+        setGeneratedPrompt(r.prompt);
+        setTips(r.tips);
+      } catch (e) {
+        setErr(String(e));
+      } finally {
+        setIsGenerating(false);
+      }
     }
   };
 
@@ -116,7 +132,7 @@ export default function ImagePrompt() {
           </div>
           <div className="flex-1">
             <h1 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-              Image Prompt Maker
+              PromptKitcha · Image prompt
             </h1>
             <p className="text-[10px] text-zinc-500 dark:text-zinc-400">
               Craft perfect prompts for AI image generation
@@ -237,6 +253,11 @@ export default function ImagePrompt() {
                 </button>
               )}
             </div>
+            {err && (
+              <p className="text-xs text-rose-600 dark:text-rose-400 rounded-lg px-2 py-1.5 bg-rose-50 dark:bg-rose-950/40 ring-1 ring-rose-200/50 dark:ring-rose-800/50">
+                {err}
+              </p>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-[10px] text-zinc-400">
                 Press Ctrl+Enter to generate
@@ -327,8 +348,8 @@ export default function ImagePrompt() {
 
         {/* Footer */}
         <div className="px-4 py-3 border-t border-black/5 dark:border-white/10 bg-zinc-50/50 dark:bg-zinc-950/30">
-          <div className="flex items-center justify-between text-[10px] text-zinc-400">
-            <span>Based on Google's nano-banana prompting guide</span>
+            <div className="flex items-center justify-between text-[10px] text-zinc-400">
+            <span>LLM + technique · re-run if you change settings</span>
             <span className="flex items-center gap-1">
               <Sparkles size={10} className="text-brand-500" />
               {imagePromptTechniques.length} techniques available
