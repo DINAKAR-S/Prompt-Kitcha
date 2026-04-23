@@ -67,13 +67,17 @@ fn validate_and_parse_shortcut(combo: &str) -> anyhow::Result<Shortcut> {
     parse_shortcut(combo)
 }
 
+fn should_handle_shortcut_event(state: ShortcutState) -> bool {
+    matches!(state, ShortcutState::Released)
+}
+
 fn register(app: &AppHandle, combo: &str) -> anyhow::Result<()> {
     let gs = app.global_shortcut();
     let sc = validate_and_parse_shortcut(combo)?;
 
     let app_clone = app.clone();
     gs.on_shortcut(sc, move |_app, _sc, event| {
-        if event.state() == ShortcutState::Released {
+        if should_handle_shortcut_event(event.state()) {
             let app = app_clone.clone();
             tauri::async_runtime::spawn(async move {
                 if let Err(e) = trigger(&app).await {
@@ -102,6 +106,9 @@ async fn trigger(app: &AppHandle) -> Result<(), String> {
         }
 
         let hint = crate::foreground::capture();
+        if crate::foreground::is_our_process(&hint) {
+            return Ok(());
+        }
         *state.active_app.write() = Some(hint);
         let text = crate::keystroke::capture_selection(app.clone(), state.clone()).await?;
 
@@ -145,4 +152,41 @@ pub fn unregister_hotkey(app: AppHandle) -> Result<(), String> {
     app.global_shortcut()
         .unregister_all()
         .map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{should_handle_shortcut_event, validate_combo_shape};
+    use tauri_plugin_global_shortcut::ShortcutState;
+
+    #[test]
+    fn accepts_valid_modifier_plus_key() {
+        assert!(validate_combo_shape("CommandOrControl+Shift+Space").is_ok());
+        assert!(validate_combo_shape("Alt+F").is_ok());
+        assert!(validate_combo_shape("Ctrl+1").is_ok());
+    }
+
+    #[test]
+    fn rejects_missing_modifier() {
+        assert!(validate_combo_shape("Space").is_err());
+        assert!(validate_combo_shape("F2").is_err());
+    }
+
+    #[test]
+    fn rejects_modifier_only() {
+        assert!(validate_combo_shape("Ctrl+Shift").is_err());
+        assert!(validate_combo_shape("Alt").is_err());
+    }
+
+    #[test]
+    fn rejects_multiple_primary_keys() {
+        assert!(validate_combo_shape("Ctrl+K+P").is_err());
+        assert!(validate_combo_shape("Alt+F+G").is_err());
+    }
+
+    #[test]
+    fn only_handles_shortcut_on_release() {
+        assert!(!should_handle_shortcut_event(ShortcutState::Pressed));
+        assert!(should_handle_shortcut_event(ShortcutState::Released));
+    }
 }
