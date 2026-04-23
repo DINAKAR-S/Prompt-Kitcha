@@ -69,6 +69,7 @@ pub fn run() {
       config::get_config,
       config::update_config,
       hotkey::register_hotkey,
+      hotkey::validate_hotkey,
       hotkey::unregister_hotkey,
       providers::list_providers,
       providers::test_connection,

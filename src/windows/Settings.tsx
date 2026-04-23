@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { Check, ExternalLink, KeyRound, Trash2, Zap, Sparkles, Shield, Command, Settings as SettingsIcon, ChevronRight } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
@@ -12,7 +12,12 @@ export default function Settings() {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [hotkeyDraft, setHotkeyDraft] = useState("");
+  const [hotkeyError, setHotkeyError] = useState<string | null>(null);
+  const [hotkeySuccess, setHotkeySuccess] = useState<string | null>(null);
+  const [capturingHotkey, setCapturingHotkey] = useState(false);
+  const [savingHotkey, setSavingHotkey] = useState(false);
   const [activeTab, setActiveTab] = useState<"general" | "provider" | "advanced">("general");
+  const hotkeyCaptureRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => { (async () => {
     const [c, pl] = await Promise.all([ipc.getConfig(), ipc.listProviders()]);
@@ -21,6 +26,11 @@ export default function Settings() {
     setHotkeyDraft(c.hotkey);
     setHasKey(await ipc.hasApiKey(c.provider));
   })(); }, []);
+  useEffect(() => {
+    if (capturingHotkey) {
+      hotkeyCaptureRef.current?.focus();
+    }
+  }, [capturingHotkey]);
 
   if (!cfg) return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
@@ -69,14 +79,45 @@ export default function Settings() {
     } finally { setTesting(false); }
   }
 
-  async function applyHotkey() {
-    if (!hotkeyDraft.trim()) return;
+  async function applyHotkey(nextCombo?: string) {
+    const combo = (nextCombo ?? hotkeyDraft).trim();
+    if (!combo) return;
+    setSavingHotkey(true);
+    setHotkeyError(null);
+    setHotkeySuccess(null);
     try {
-      await ipc.registerHotkey(hotkeyDraft.trim());
-      await patch({ hotkey: hotkeyDraft.trim(), onboarded: true });
+      const normalized = await ipc.validateHotkey(combo);
+      await ipc.registerHotkey(normalized);
+      await patch({ hotkey: normalized, onboarded: true });
+      setHotkeyDraft(normalized);
+      setHotkeySuccess("Saved");
     } catch (e) {
-      alert("Hotkey invalid: " + e);
+      setHotkeyError(String(e));
+    } finally {
+      setSavingHotkey(false);
     }
+  }
+
+  async function onHotkeyCaptureKeyDown(e: React.KeyboardEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    e.stopPropagation();
+    setHotkeyError(null);
+    setHotkeySuccess(null);
+
+    if (e.key === "Escape" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      setCapturingHotkey(false);
+      return;
+    }
+
+    const combo = keyboardEventToShortcut(e);
+    if (!combo) {
+      setHotkeyError("Use at least one modifier and one supported key.");
+      return;
+    }
+
+    setHotkeyDraft(combo);
+    setCapturingHotkey(false);
+    await applyHotkey(combo);
   }
 
   async function finishOnboarding() {
@@ -291,24 +332,45 @@ export default function Settings() {
 
             {activeTab === "advanced" && (
               <Card title="Keyboard Shortcut" description="Customize your hotkey for quick access">
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <label className="block text-sm font-medium text-zinc-300">Global Hotkey</label>
+                  <button
+                    ref={hotkeyCaptureRef}
+                    type="button"
+                    onClick={() => {
+                      setCapturingHotkey((v) => !v);
+                      setHotkeyError(null);
+                      setHotkeySuccess(null);
+                    }}
+                    onKeyDown={onHotkeyCaptureKeyDown}
+                    className={clsx(
+                      "w-full px-4 py-3 rounded-xl border text-left transition-all font-mono text-sm",
+                      capturingHotkey
+                        ? "border-brand-500 bg-brand-500/10 text-brand-300 ring-2 ring-brand-500/20"
+                        : "border-zinc-800 bg-zinc-900 text-white hover:border-zinc-700"
+                    )}
+                  >
+                    {capturingHotkey ? "Press your shortcut..." : hotkeyDraft}
+                  </button>
                   <div className="flex gap-3">
                     <input
                       type="text"
                       value={hotkeyDraft}
                       onChange={(e) => setHotkeyDraft(e.target.value)}
-                      placeholder="e.g. CommandOrControl+Shift+Space"
+                      placeholder="Or type manually (e.g. CommandOrControl+Shift+Space)"
                       className="flex-1 px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all font-mono text-sm"
                     />
                     <button 
-                      onClick={applyHotkey} 
-                      className="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium transition-all shadow-lg shadow-brand-500/20"
+                      onClick={() => applyHotkey()}
+                      disabled={savingHotkey}
+                      className="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium transition-all shadow-lg shadow-brand-500/20 disabled:opacity-50"
                     >
-                      Apply
+                      {savingHotkey ? "Saving..." : "Apply"}
                     </button>
                   </div>
-                  <p className="text-xs text-zinc-500">Press this key combination anywhere to open PromptKitcha</p>
+                  <p className="text-xs text-zinc-500">Use modifier combos like CommandOrControl+Shift+Space or Alt+F.</p>
+                  {hotkeyError && <p className="text-xs text-rose-400">{hotkeyError}</p>}
+                  {hotkeySuccess && <p className="text-xs text-emerald-400">{hotkeySuccess}</p>}
                 </div>
               </Card>
             )}
@@ -317,6 +379,46 @@ export default function Settings() {
       </div>
     </div>
   );
+}
+
+const MODIFIER_ORDER = ["CommandOrControl", "Alt", "Shift", "Super"] as const;
+
+function keyboardEventToShortcut(e: React.KeyboardEvent<HTMLButtonElement>): string | null {
+  const modifierSet = new Set<string>();
+  if (e.ctrlKey || e.metaKey) modifierSet.add("CommandOrControl");
+  if (e.altKey) modifierSet.add("Alt");
+  if (e.shiftKey) modifierSet.add("Shift");
+
+  const key = normalizePrimaryKey(e.key);
+  if (!key || modifierSet.size === 0) return null;
+
+  const mods = MODIFIER_ORDER.filter((m) => modifierSet.has(m));
+  return [...mods, key].join("+");
+}
+
+function normalizePrimaryKey(key: string): string | null {
+  const lowered = key.toLowerCase();
+  if (["control", "ctrl", "shift", "alt", "meta", "super", "os", "command"].includes(lowered)) {
+    return null;
+  }
+  if (lowered === " ") return "Space";
+  if (lowered === "escape" || lowered === "esc") return "Escape";
+  if (lowered === "enter" || lowered === "return") return "Enter";
+  if (lowered === "tab") return "Tab";
+  if (lowered === "backspace") return "Backspace";
+  if (lowered === "delete") return "Delete";
+  if (lowered === "insert") return "Insert";
+  if (lowered === "home") return "Home";
+  if (lowered === "end") return "End";
+  if (lowered === "pageup") return "PageUp";
+  if (lowered === "pagedown") return "PageDown";
+  if (lowered === "arrowup") return "Up";
+  if (lowered === "arrowdown") return "Down";
+  if (lowered === "arrowleft") return "Left";
+  if (lowered === "arrowright") return "Right";
+  if (/^f([1-9]|1[0-9]|2[0-4])$/i.test(key)) return key.toUpperCase();
+  if (/^[a-z0-9]$/i.test(key)) return key.toUpperCase();
+  return null;
 }
 
 function Card({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {

@@ -91,6 +91,8 @@ export const ipc = {
 
   registerHotkey: (combo: string) =>
     invoke<void>("register_hotkey", { combo }),
+  validateHotkey: (combo: string) =>
+    invoke<string>("validate_hotkey", { combo }),
   unregisterHotkey: () => invoke<void>("unregister_hotkey"),
 
   showSettings: () => invoke<void>("show_settings"),
