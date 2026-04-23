@@ -367,6 +367,13 @@ export default function Settings() {
                     >
                       {savingHotkey ? "Saving..." : "Apply"}
                     </button>
+                    <button
+                      onClick={() => applyHotkey(DEFAULT_HOTKEY)}
+                      disabled={savingHotkey}
+                      className="px-4 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium transition-all disabled:opacity-50"
+                    >
+                      Reset
+                    </button>
                   </div>
                   <p className="text-xs text-zinc-500">Use modifier combos like CommandOrControl+Shift+Space or Alt+F.</p>
                   {hotkeyError && <p className="text-xs text-rose-400">{hotkeyError}</p>}
@@ -381,6 +388,7 @@ export default function Settings() {
   );
 }
 
+const DEFAULT_HOTKEY = "CommandOrControl+Shift+Space";
 const MODIFIER_ORDER = ["CommandOrControl", "Alt", "Shift", "Super"] as const;
 
 function keyboardEventToShortcut(e: React.KeyboardEvent<HTMLButtonElement>): string | null {

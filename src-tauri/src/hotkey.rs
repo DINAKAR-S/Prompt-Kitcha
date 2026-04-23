@@ -1,7 +1,13 @@
 use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
+use std::sync::atomic::Ordering;
+use std::sync::{Mutex, OnceLock};
+use std::time::{Duration, Instant};
 
 use crate::SharedState;
+
+static LAST_TRIGGER_AT: OnceLock<Mutex<Instant>> = OnceLock::new();
+const HOTKEY_COOLDOWN: Duration = Duration::from_millis(700);
 
 pub fn install_default(app: &AppHandle, state: &SharedState) -> anyhow::Result<()> {
     let combo = state.config.read().hotkey.clone();
@@ -81,22 +87,41 @@ fn register(app: &AppHandle, combo: &str) -> anyhow::Result<()> {
 
 async fn trigger(app: &AppHandle) -> Result<(), String> {
     let state = app.state::<SharedState>();
-    let hint = crate::foreground::capture();
-    *state.active_app.write() = Some(hint);
-    let text = crate::keystroke::capture_selection(app.clone(), state).await?;
-
-    if let Some(win) = app.get_webview_window("popup") {
-        let anchor = crate::cursor::get_popup_anchor(560, 360);
-        if let Ok(p) = anchor {
-            let _ = win.set_position(tauri::PhysicalPosition::new(p.x, p.y));
-        }
-        win.show().map_err(|e| e.to_string())?;
-        win.set_focus().map_err(|e| e.to_string())?;
+    if state.hotkey_busy.swap(true, Ordering::AcqRel) {
+        return Ok(());
     }
+    let result = async {
+        let now = Instant::now();
+        let gate = LAST_TRIGGER_AT.get_or_init(|| Mutex::new(Instant::now() - HOTKEY_COOLDOWN));
+        {
+            let mut last = gate.lock().map_err(|_| "hotkey lock poisoned".to_string())?;
+            if now.duration_since(*last) < HOTKEY_COOLDOWN {
+                return Ok(());
+            }
+            *last = now;
+        }
 
-    app.emit("pw:selection-captured", text)
-        .map_err(|e| e.to_string())?;
-    Ok(())
+        let hint = crate::foreground::capture();
+        *state.active_app.write() = Some(hint);
+        let text = crate::keystroke::capture_selection(app.clone(), state.clone()).await?;
+
+        if let Some(win) = app.get_webview_window("popup") {
+            let anchor = crate::cursor::get_popup_anchor(560, 360);
+            if let Ok(p) = anchor {
+                let _ = win.set_position(tauri::PhysicalPosition::new(p.x, p.y));
+            }
+            win.show().map_err(|e| e.to_string())?;
+            win.set_focus().map_err(|e| e.to_string())?;
+        }
+
+        app.emit("pw:selection-captured", text)
+            .map_err(|e| e.to_string())?;
+        Ok(())
+    }
+    .await;
+
+    state.hotkey_busy.store(false, Ordering::Release);
+    result
 }
 
 #[tauri::command]

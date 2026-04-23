@@ -11,6 +11,7 @@ mod tray;
 mod watcher;
 
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 
 use parking_lot::RwLock;
 use tauri::{Manager, WindowEvent};
@@ -22,6 +23,7 @@ pub struct AppState {
   pub saved_clipboard: RwLock<Option<String>>,
   pub last_self_write: RwLock<Option<String>>,
   pub active_app: RwLock<Option<crate::foreground::AppHint>>,
+  pub hotkey_busy: AtomicBool,
 }
 
 pub type SharedState = Arc<AppState>;
@@ -41,6 +43,7 @@ pub fn run() {
     saved_clipboard: RwLock::new(None),
     last_self_write: RwLock::new(None),
     active_app: RwLock::new(None),
+    hotkey_busy: AtomicBool::new(false),
   });
 
   tauri::Builder::default()
