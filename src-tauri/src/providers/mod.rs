@@ -50,17 +50,24 @@ pub trait Provider: Send + Sync {
 }
 
 pub fn build(name: &str, base_url: Option<&str>) -> Result<Box<dyn Provider>, ProviderError> {
+    let normalized_base_url = base_url
+        .map(str::trim)
+        .filter(|url| !url.is_empty());
+
     match name {
-        "openai" => Ok(Box::new(openai::OpenAi::new(get_key_internal("openai"), base_url))),
+        "openai" => Ok(Box::new(openai::OpenAi::new(
+            get_key_internal("openai"),
+            normalized_base_url,
+        ))),
         "anthropic" => Ok(Box::new(anthropic::Anthropic::new(
             get_key_internal("anthropic"),
-            base_url,
+            normalized_base_url,
         ))),
         "openrouter" => Ok(Box::new(openrouter::OpenRouter::new(
             get_key_internal("openrouter"),
-            base_url,
+            normalized_base_url,
         ))),
-        "ollama" => Ok(Box::new(ollama::Ollama::new(base_url))),
+        "ollama" => Ok(Box::new(ollama::Ollama::new(normalized_base_url))),
         other => Err(ProviderError::Unknown(other.into())),
     }
 }

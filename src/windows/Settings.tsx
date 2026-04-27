@@ -213,7 +213,7 @@ export default function Settings() {
                     {providers.map((p) => (
                       <button
                         key={p.id}
-                        onClick={() => patch({ provider: p.id, model: p.default_model })}
+                        onClick={() => patch({ provider: p.id, model: p.default_model, base_url: null })}
                         className={clsx(
                           "relative p-4 rounded-xl border-2 transition-all text-left group",
                           cfg.provider === p.id
